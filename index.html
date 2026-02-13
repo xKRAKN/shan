@@ -6,16 +6,13 @@
     <title>Sunflower Garden</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.js"></script>
     <style>
+        * { margin: 0; padding: 0; }
         body {
-            margin: 0;
-            padding: 0;
-            overflow: hidden; /* Fixes the "double result" / scrollbar bug */
             background-color: #222;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            overflow: hidden; /* Prevent scrolling */
+            width: 100vw;
             height: 100vh;
-            touch-action: none; /* Helps mobile touch follow the sun better */
+            touch-action: none; /* Crucial for mobile touch control */
         }
         canvas {
             display: block;
