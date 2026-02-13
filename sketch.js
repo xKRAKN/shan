@@ -1,5 +1,5 @@
 let stemHeight = 0;
-let maxStemHeight; // We will calculate this based on screen height
+let maxStemHeight;
 let bloomScale = 0;
 let numSeeds = 0;
 let maxSeeds = 200;
@@ -8,22 +8,40 @@ let clouds = [];
 let raindrops = []; 
 let beePos;
 
+// Reset Variables
+let lastTapTime = 0;
+
 function setup() {
-  // Use windowWidth and windowHeight to fill the phone screen
   createCanvas(windowWidth, windowHeight);
   pixelDensity(1);
   angleMode(DEGREES);
   
-  maxStemHeight = height * 0.6; // Stem grows to 60% of screen height
+  initGarden(); // Move initialization to a function so we can call it again
+}
+
+function initGarden() {
+  stemHeight = 0;
+  bloomScale = 0;
+  numSeeds = 0;
+  maxStemHeight = height * 0.6;
   beePos = createVector(-50, 100);
-  
-  // Initialize drifting clouds
+  clouds = [];
   for (let i = 0; i < 4; i++) {
     clouds.push({ x: random(width), y: random(50, 150), speed: random(0.2, 0.5) });
   }
 }
 
-// This function fixes the layout if the phone is rotated
+// Logic for Double Tap / Double Click
+function mousePressed() {
+  let currentTime = millis();
+  let timeDiff = currentTime - lastTapTime;
+  
+  if (timeDiff < 300) { // If second tap happens within 300ms
+    initGarden(); // Reset the sunflower
+  }
+  lastTapTime = currentTime;
+}
+
 function windowResized() {
   resizeCanvas(windowWidth, windowHeight);
   maxStemHeight = height * 0.6;
@@ -32,7 +50,7 @@ function windowResized() {
 function draw() {
   drawSky();
   
-  // Rain Logic
+  // Rain
   stroke(174, 194, 224, 150); 
   strokeWeight(2);
   for (let i = raindrops.length - 1; i >= 0; i--) {
@@ -51,7 +69,6 @@ function draw() {
     }
   }
 
-  // On mobile, touchX/touchY replaces mouseX/mouseY automatically in p5.js
   drawSun(mouseX, mouseY);
 
   // Soil
@@ -62,7 +79,6 @@ function draw() {
   // Sunflower Growth
   if (stemHeight < maxStemHeight) stemHeight += 2;
   
-  // Use the center of the screen as the base
   let bend = map(mouseX, 0, width, -width * 0.1, width * 0.1);
   let fx = width/2 + bend;
   let fy = height - 60 - stemHeight;
@@ -103,7 +119,7 @@ function drawCloud(x, y) {
 
 function drawStem(bx, by, fx, fy, bend) {
   stroke(100, 150, 50);
-  strokeWeight(width > 500 ? 12 : 8); // Thinner stem on small screens
+  strokeWeight(width > 500 ? 12 : 8);
   noFill();
   beginShape();
   vertex(bx, by);
@@ -116,7 +132,6 @@ function drawPetals(scaleVal) {
   stroke(218, 165, 32); 
   strokeWeight(1);
   let petalCount = 20;
-  // Make petals smaller on mobile
   let petalSize = width > 500 ? 100 : 70; 
   for (let i = 0; i < petalCount; i++) {
     push();
