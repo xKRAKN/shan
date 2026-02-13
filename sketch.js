@@ -1,3 +1,9 @@
+function setup() {
+  createCanvas(windowWidth, windowHeight);
+  pixelDensity(1); // Forces GitHub to render exactly like p5.js
+  angleMode(DEGREES);
+  initGarden();
+}
 let stemHeight = 0;
 let maxStemHeight;
 let bloomScale = 0;
