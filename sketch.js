@@ -9,7 +9,7 @@ let stemHeight = 0;
 let maxStemHeight;
 let bloomScale = 0;
 let numSeeds = 0;
-let maxSeeds = 250; // Increased for a fuller center
+let maxSeeds = 250; 
 
 let clouds = [];
 let raindrops = [];
@@ -22,7 +22,6 @@ let letterScale = 0;
 let showLetter = false;
 
 function setup() {
-  // Use window dimensions for full-screen feel
   createCanvas(windowWidth, windowHeight);
   pixelDensity(1); 
   angleMode(DEGREES);
@@ -35,7 +34,7 @@ function initGarden() {
   numSeeds = 0;
   letterScale = 0;
   showLetter = false;
-  maxStemHeight = height * 0.6; // Responsive height
+  maxStemHeight = height * 0.6; 
   beePos = createVector(-50, 100);
   
   clouds = [];
@@ -70,7 +69,7 @@ function draw() {
     if (r.y > height - 60) raindrops.splice(i, 1);
   }
 
-  // 2. Cloud Logic
+  // 2. Clouds
   for (let c of clouds) {
     drawCloud(c.x, c.y);
     c.x += c.speed;
@@ -89,7 +88,7 @@ function draw() {
   fill(0, 0, 0, 50); 
   for(let i=0; i<width; i+=20) ellipse(i + (frameCount%20), height-30, 5, 5);
 
-  // 4. Sunflower Logic
+  // 4. Sunflower Growth
   if (stemHeight < maxStemHeight) stemHeight += 2;
   
   let bend = map(mouseX, 0, width, -width * 0.1, width * 0.1);
@@ -109,15 +108,14 @@ function draw() {
     translate(fx, fy);
     let headTilt = constrain(map(mouseX, 0, width, -30, 30), -30, 30);
     rotate(headTilt);
-    
     drawPetals(bloomScale);
-    drawSeeds(bloomScale); // Re-fixed seeds
+    drawSeeds(bloomScale); 
     pop();
 
     updateRealisticBee(fx, fy);
   }
 
-  // 5. Letter & Heart Logic
+  // 5. Letter & Heart
   if (showLetter) {
     drawSideLetter();
     drawPulsingHeart();
@@ -150,11 +148,34 @@ function drawStem(bx, by, fx, fy, bend) {
   vertex(bx, by);
   quadraticVertex(bx, by - stemHeight/2, fx, fy);
   endShape();
+
+  // Leaves
+  if (stemHeight > 50) {
+    noStroke();
+    fill(80, 130, 40);
+    // Leaf 1
+    push();
+    let lx1 = lerp(bx, fx, 0.4);
+    let ly1 = lerp(by, fy, 0.4);
+    translate(lx1, ly1);
+    rotate(bend - 45);
+    ellipse(0, 0, (width > 600 ? 60 : 40) * bloomScale + 20, (width > 600 ? 30 : 20) * bloomScale + 10);
+    pop();
+    // Leaf 2
+    push();
+    let lx2 = lerp(bx, fx, 0.7);
+    let ly2 = lerp(by, fy, 0.7);
+    translate(lx2, ly2);
+    rotate(bend + 45);
+    ellipse(0, 0, (width > 600 ? 50 : 35) * bloomScale + 15, (width > 600 ? 25 : 15) * bloomScale + 8);
+    pop();
+  }
 }
 
 function drawPetals(scaleVal) {
   fill(255, 215, 0); 
   stroke(218, 165, 32); 
+  strokeWeight(1);
   let pSize = width > 600 ? 100 : 70;
   for (let i = 0; i < 20; i++) {
     push();
@@ -164,15 +185,14 @@ function drawPetals(scaleVal) {
   }
 }
 
+
 function drawSeeds(scaleVal) {
   let sSize = width > 600 ? 90 : 60;
-  fill(60, 40, 20); // Dark center base
+  fill(60, 40, 20); 
   noStroke();
   ellipse(0, 0, sSize * scaleVal, sSize * scaleVal);
   
   if (numSeeds < maxSeeds) numSeeds += 2;
-  
-  // Fermat's Spiral for seeds
   let angleStep = 137.5; 
   let scalar = (sSize / 30) * scaleVal;
   for (let i = 0; i < numSeeds; i++) {
@@ -190,21 +210,18 @@ function updateRealisticBee(tx, ty) {
   
   push();
   translate(beePos.x, beePos.y);
-  
-  // Wings (Rapid flutter)
+  // Wings
   fill(255, 255, 255, 160);
   let wingFlap = sin(frameCount * 30) * 15;
   push(); rotate(wingFlap); ellipse(-5, -10, 12, 18); pop();
   push(); rotate(-wingFlap); ellipse(-5, 10, 12, 18); pop();
-
-  // Segmented body
+  // Body
   noStroke();
-  fill(255, 210, 0); // Yellow
+  fill(255, 210, 0);
   ellipse(0, 0, 28, 18);
-  fill(0); // Stripes
+  fill(0); 
   rect(-4, -8, 4, 16, 2);
   rect(3, -7, 4, 14, 2);
-  
   // Head
   ellipse(12, 0, 10, 10);
   pop();
@@ -215,7 +232,6 @@ function drawPulsingHeart() {
   let pulse = map(sin(frameCount * 6), -1, 1, 0.8, 1.2);
   translate(beePos.x, beePos.y - 35);
   scale(pulse);
-  
   fill(255, 50, 50);
   noStroke();
   let hSize = 8;
@@ -230,7 +246,6 @@ function drawSideLetter() {
   push();
   let posX = width > 800 ? width * 0.75 : width / 2;
   let posY = width > 800 ? height / 2 : height * 0.25;
-  
   translate(posX, posY);
   scale(letterScale);
   rectMode(CENTER);
