@@ -15,12 +15,13 @@ let clouds = [];
 let raindrops = [];
 let splashes = []; 
 let pollen = [];   
-let petals = [];   // NEW: For the falling petal effect
+let petals = [];   
 let beePos;
 let lastTapTime = 0;
 
 // --- Letter & Heart Variables ---
-let myLetter = "To Shashan,\n\nI really like you and that is why I want to know you more. I want you to know that I am always here when you need someone.\n\nJust like this sunflower, you make the world a little brighter. Keep blooming!";
+// Added a signature line to the message
+let myLetter = "To Shashan,\n\nI really like you and that is why I want to know you more. I want you to know that I am always here when you need someone.\n\nJust like this sunflower, you make the world a little brighter. Keep blooming!\n\n— With love";
 let letterScale = 0;
 let showLetter = false;
 
@@ -42,7 +43,7 @@ function initGarden() {
   raindrops = [];
   splashes = [];
   pollen = [];
-  petals = []; // Reset petals
+  petals = [];
   
   clouds = [];
   for (let i = 0; i < 4; i++) {
@@ -65,6 +66,7 @@ function mousePressed() {
 
 function draw() {
   drawDynamicSky(); 
+  drawMountains(); 
   
   // 1. Rain & Splash Logic
   strokeWeight(2);
@@ -102,12 +104,8 @@ function draw() {
 
   drawSun();
 
-  // 3. Soil
-  noStroke();
-  fill(139, 94, 60); 
-  rect(0, height - 60, width, 60);
-  fill(0, 0, 0, 50); 
-  for(let i=0; i<width; i+=20) ellipse(i + (frameCount%20), height-30, 5, 5);
+  // 3. Ground & Grass (Updated with tiny flowers)
+  drawGround(); 
 
   // 4. Sunflower Growth
   if (stemHeight < maxStemHeight) stemHeight += 2;
@@ -136,7 +134,6 @@ function draw() {
     updateRealisticBee(fx, fy);
     drawPollen(); 
     
-    // NEW: Trigger falling petals once fully grown
     if (showLetter && frameCount % 60 === 0) {
        petals.push({ 
          x: random(width), 
@@ -156,22 +153,51 @@ function draw() {
   }
 }
 
-// --- NEW FUNCTION: Falling Petal Animation ---
+function drawMountains() {
+  noStroke();
+  fill(80, 110, 140, 150); 
+  beginShape();
+  vertex(0, height - 60);
+  bezierVertex(width * 0.2, height * 0.7, width * 0.4, height * 0.8, width * 0.6, height - 60);
+  bezierVertex(width * 0.8, height * 0.6, width * 0.9, height * 0.7, width, height - 60);
+  endShape(CLOSE);
+}
+
+function drawGround() {
+  noStroke();
+  // Soil Base
+  fill(139, 94, 60); 
+  rect(0, height - 60, width, 60);
+  
+  // Grass Layer
+  for(let i = 0; i < width; i += 15) {
+    let sway = sin(i + frameCount * 2) * 3;
+    fill(60, 100, 40);
+    triangle(i, height - 60, i + 15, height - 60, i + 7 + sway, height - 75);
+    
+    // Tiny white/blue companion flowers
+    if (i % 60 === 0) {
+      fill(255, 255, 255, 200);
+      ellipse(i + 7 + sway, height - 75, 5, 5);
+      fill(255, 200, 0);
+      ellipse(i + 7 + sway, height - 75, 2, 2);
+    }
+  }
+}
+
 function drawFallingPetals() {
   noStroke();
-  fill(255, 215, 0, 180); // Sunflower yellow
+  fill(255, 215, 0, 180); 
   for (let i = petals.length - 1; i >= 0; i--) {
     let p = petals[i];
     push();
     translate(p.x, p.y);
     rotate(p.angle);
-    ellipse(0, 0, 15, 8); // Small petal shape
+    ellipse(0, 0, 15, 8);
     pop();
-    
     p.y += p.speed;
-    p.x += p.drift + sin(frameCount) * 0.5; // Slight swaying
+    p.x += p.drift + sin(frameCount) * 0.5;
     p.angle += p.rotSpeed;
-    
     if (p.y > height) petals.splice(i, 1);
   }
 }
@@ -188,8 +214,6 @@ function drawSun() {
   fill(255, 230, 0, 180);
   noStroke();
   ellipse(mouseX, mouseY, 60, 60);
-  fill(255, 255, 255, 80);
-  ellipse(mouseX, mouseY, 80, 80); 
 }
 
 function drawCloud(x, y) {
@@ -208,7 +232,7 @@ function drawStem(bx, by, fx, fy, bend) {
   vertex(bx, by);
   quadraticVertex(bx, by - stemHeight/2, fx, fy);
   endShape();
-
+  
   if (stemHeight > 50) {
     noStroke();
     fill(80, 130, 40);
@@ -217,14 +241,7 @@ function drawStem(bx, by, fx, fy, bend) {
     let ly1 = lerp(by, fy, 0.4);
     translate(lx1, ly1);
     rotate(bend - 45);
-    ellipse(0, 0, (width > 600 ? 60 : 40) * bloomScale + 20, (width > 600 ? 30 : 20) * bloomScale + 10);
-    pop();
-    push();
-    let lx2 = lerp(bx, fx, 0.7);
-    let ly2 = lerp(by, fy, 0.7);
-    translate(lx2, ly2);
-    rotate(bend + 45);
-    ellipse(0, 0, (width > 600 ? 50 : 35) * bloomScale + 15, (width > 600 ? 25 : 15) * bloomScale + 8);
+    ellipse(0, 0, 40 * bloomScale + 20, 20 * bloomScale + 10);
     pop();
   }
 }
@@ -244,10 +261,6 @@ function drawPetals(scaleVal) {
 
 function drawSeeds(scaleVal) {
   let sSize = width > 600 ? 90 : 60;
-  for (let i = 8; i > 0; i--) {
-    fill(255, 255, 100, 12 - i);
-    ellipse(0, 0, (sSize * scaleVal) + (i * 8));
-  }
   fill(60, 40, 20); 
   noStroke();
   ellipse(0, 0, sSize * scaleVal, sSize * scaleVal);
@@ -271,17 +284,8 @@ function updateRealisticBee(tx, ty) {
   }
   push();
   translate(beePos.x, beePos.y);
-  fill(255, 255, 255, 160);
-  let wingFlap = sin(frameCount * 30) * 15;
-  push(); rotate(wingFlap); ellipse(-5, -10, 12, 18); pop();
-  push(); rotate(-wingFlap); ellipse(-5, 10, 12, 18); pop();
-  noStroke();
   fill(255, 210, 0);
   ellipse(0, 0, 28, 18);
-  fill(0); 
-  rect(-4, -8, 4, 16, 2);
-  rect(3, -7, 4, 14, 2);
-  ellipse(12, 0, 10, 10);
   pop();
 }
 
@@ -291,7 +295,6 @@ function drawPollen() {
     let p = pollen[i];
     fill(255, 255, 0, p.a);
     ellipse(p.x, p.y, 3, 3);
-    p.x += p.vx;
     p.y += p.vy;
     p.a -= 5;
     if (p.a <= 0) pollen.splice(i, 1);
@@ -305,10 +308,9 @@ function drawPulsingHeart() {
   scale(pulse);
   fill(255, 50, 50);
   noStroke();
-  let hSize = 8;
-  ellipse(-hSize/2, 0, hSize, hSize);
-  ellipse(hSize/2, 0, hSize, hSize);
-  triangle(-hSize, 0, hSize, 0, 0, hSize + 2);
+  ellipse(-4, 0, 8, 8);
+  ellipse(4, 0, 8, 8);
+  triangle(-8, 0, 8, 0, 0, 10);
   pop();
 }
 
@@ -320,25 +322,17 @@ function drawSideLetter() {
   translate(posX, posY);
   scale(letterScale);
   rectMode(CENTER);
-
   let cardW = width > 600 ? 380 : width * 0.9;
-  textFont('Georgia');
-  textSize(width > 600 ? 18 : 15);
-  
-  let wrapWidth = cardW - 50;
-  let cardH = width > 600 ? 280 : 320; 
-
-  fill(0, 20);
-  rect(5, 5, cardW, cardH, 15);
-
+  let cardH = width > 600 ? 300 : 340; 
   fill(255, 253, 245);
   stroke(200, 180, 150);
   strokeWeight(3);
   rect(0, 0, cardW, cardH, 15);
-  
   fill(50, 40, 20);
   noStroke();
   textAlign(CENTER, CENTER);
-  text(myLetter, 0, 0, wrapWidth, cardH - 40);
+  textFont('Georgia');
+  textSize(width > 600 ? 18 : 15);
+  text(myLetter, 0, 0, cardW - 50, cardH - 40);
   pop();
 }
