@@ -4,12 +4,6 @@ function setup() {
   angleMode(DEGREES);
   initGarden();
 }
-function setup() {
-  createCanvas(windowWidth, windowHeight);
-  pixelDensity(1); // THIS IS THE KEY: it stops high-res screens from changing the scale
-  angleMode(DEGREES);
-  initGarden();
-}
 // --- Variables ---
 let stemHeight = 0;
 let maxStemHeight;
