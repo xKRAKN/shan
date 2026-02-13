@@ -15,7 +15,7 @@ let clouds = [];
 let raindrops = [];
 let splashes = []; 
 let pollen = [];   
-let petals = [];   
+let petals = [];   // Added for the falling effect
 let beePos;
 let lastTapTime = 0;
 
@@ -65,7 +65,7 @@ function mousePressed() {
 
 function draw() {
   drawDynamicSky(); 
-  drawMountains(); 
+  drawMountains(); // New background depth
   
   // 1. Rain & Splash Logic
   strokeWeight(2);
@@ -103,7 +103,7 @@ function draw() {
 
   drawSun();
 
-  // 3. Ground & Grass
+  // 3. Ground & Realistic Grass
   drawGround(); 
 
   // 4. Sunflower Growth
@@ -113,7 +113,7 @@ function draw() {
   let fx = width/2 + bend;
   let fy = height - 60 - stemHeight;
 
-  // Sunflower Shadow
+  // Subtle shadow under the plant
   fill(0, 30);
   noStroke();
   ellipse(width/2, height - 60, 60 * bloomScale + 20, 10);
@@ -138,15 +138,9 @@ function draw() {
     updateRealisticBee(fx, fy);
     drawPollen(); 
     
+    // Trigger falling petals effect
     if (showLetter && frameCount % 60 === 0) {
-       petals.push({ 
-         x: random(width), 
-         y: -20, 
-         speed: random(1, 2), 
-         angle: random(360), 
-         rotSpeed: random(1, 3),
-         drift: random(-1, 1)
-       });
+       petals.push({ x: random(width), y: -20, speed: random(1, 2), angle: random(360), rotSpeed: random(1, 3), drift: random(-1, 1)});
     }
     drawFallingPetals();
   }
@@ -157,151 +151,99 @@ function draw() {
   }
 }
 
-// --- Background Components ---
+// --- NEW/UPDATED VISUAL FUNCTIONS ---
 
 function drawMountains() {
   noStroke();
-  fill(70, 90, 120, 180); 
+  fill(70, 90, 120, 150); 
   beginShape();
   vertex(0, height - 60);
-  bezierVertex(width * 0.2, height * 0.65, width * 0.4, height * 0.85, width * 0.5, height - 60);
-  fill(85, 105, 135, 200);
-  bezierVertex(width * 0.7, height * 0.55, width * 0.9, height * 0.75, width, height - 60);
+  bezierVertex(width * 0.2, height * 0.7, width * 0.4, height * 0.8, width * 0.5, height - 60);
+  fill(85, 105, 135, 180);
+  bezierVertex(width * 0.7, height * 0.6, width * 0.9, height * 0.7, width, height - 60);
   endShape(CLOSE);
 }
 
 function drawGround() {
   noStroke();
-  // Soil with depth
-  fill(100, 70, 45); 
+  fill(110, 80, 50); // Soil
   rect(0, height - 60, width, 60);
-  fill(139, 94, 60);
-  rect(0, height - 60, width, 15);
   
   for(let i = 0; i < width; i += 12) {
     let sway = sin(i + frameCount * 2) * 3;
-    // Layered Grass
-    fill(45, 85, 30);
+    fill(45, 85, 30); // Dark grass
     triangle(i, height - 60, i + 12, height - 60, i + 6 + sway, height - 78);
-    fill(60, 110, 45);
-    triangle(i + 4, height - 60, i + 10, height - 60, i + 7 + sway, height - 72);
     
-    // Tiny Realistic Wildflowers
-    if (i % 70 === 0) {
-      let flowerColor = (i % 140 === 0) ? color(255, 100, 150) : color(100, 200, 255);
-      drawTinyFlower(i + 7 + sway, height - 75, flowerColor);
+    // Wildflowers every few steps
+    if (i % 72 === 0) {
+      let fCol = (i % 144 === 0) ? color(255, 150, 180) : color(150, 200, 255);
+      push();
+      translate(i + 7 + sway, height - 75);
+      fill(fCol);
+      for(let j=0; j<5; j++) { rotate(72); ellipse(3, 0, 5, 3); }
+      fill(255, 255, 0); ellipse(0, 0, 3, 3);
+      pop();
     }
   }
 }
 
-function drawTinyFlower(x, y, c) {
-  push();
-  translate(x, y);
-  fill(c);
-  for(let i = 0; i < 5; i++) {
-    rotate(72);
-    ellipse(3, 0, 5, 3);
-  }
-  fill(255, 255, 0);
-  ellipse(0, 0, 3, 3);
-  pop();
-}
+function updateRealisticBee(tx, ty) {
+  let target = createVector(tx + 45, ty + 15);
+  beePos.x = lerp(beePos.x, target.x, 0.05);
+  beePos.y = lerp(beePos.y, target.y, 0.05);
+  let hover = sin(frameCount * 8) * 5;
 
-// --- Sunflower Components (Realistic Colors) ---
+  push();
+  translate(beePos.x, beePos.y + hover);
+  
+  // High-speed vibrating wings
+  fill(255, 255, 255, 120);
+  let v = sin(frameCount * 50) * 15;
+  push(); rotate(-25 + v); ellipse(-4, -12, 18, 10); pop();
+  push(); rotate(25 - v); ellipse(-4, 12, 18, 10); pop();
+
+  // Fuzzy Body
+  fill(255, 210, 0);
+  ellipse(0, 0, 30, 22);
+  fill(0);
+  rect(-4, -10, 5, 20, 3); // Stripe 1
+  rect(6, -9, 4, 18, 3);   // Stripe 2
+  
+  // Head & Eyes
+  fill(20);
+  ellipse(13, 0, 15, 15);
+  fill(255, 220);
+  ellipse(16, -3, 3, 3); // Glint
+  pop();
+
+  if (frameCount % 10 === 0) {
+    pollen.push({ x: beePos.x, y: beePos.y + hover, vx: random(-1, 1), vy: random(1, 2), a: 200 });
+  }
+}
 
 function drawPetals(scaleVal) {
   let pSize = width > 600 ? 100 : 70;
   for (let i = 0; i < 24; i++) {
     push();
     rotate(i * 15);
-    // Gradient effect: darker gold at base, bright yellow at tips
+    // Two-tone petals for realism
     fill(218, 165, 32); 
     ellipse(pSize/3 + 10, 0, pSize * scaleVal, (pSize/4) * scaleVal);
-    fill(255, 225, 0);
+    fill(255, 220, 0);
     ellipse(pSize/2 + 20, 0, (pSize*0.8) * scaleVal, (pSize/5) * scaleVal);
     pop();
   }
 }
 
-function drawSeeds(scaleVal) {
-  let sSize = width > 600 ? 95 : 65;
-  // Deep brown core
-  fill(40, 25, 10); 
-  ellipse(0, 0, sSize * scaleVal, sSize * scaleVal);
-  
-  if (numSeeds < maxSeeds) numSeeds += 2;
-  let angleStep = 137.5; 
-  let scalar = (sSize / 31) * scaleVal;
-  for (let i = 0; i < numSeeds; i++) {
-    let r = scalar * sqrt(i);
-    let theta = i * angleStep;
-    // Seed variation
-    fill(i % 5 === 0 ? 80 : 50, 30, 0);
-    ellipse(r * cos(theta), r * sin(theta), 4 * scaleVal, 4 * scaleVal);
-  }
-}
-
-// --- Realistic Bee Update ---
-
-function updateRealisticBee(tx, ty) {
-  let target = createVector(tx + 50, ty + 10);
-  beePos.x = lerp(beePos.x, target.x, 0.04);
-  beePos.y = lerp(beePos.y, target.y, 0.04);
-  
-  let hoverY = sin(frameCount * 8) * 6;
-
-  // Bee Shadow on Flower
-  fill(0, 40);
-  noStroke();
-  ellipse(beePos.x, beePos.y + 40, 20, 5);
-
-  push();
-  translate(beePos.x, beePos.y + hoverY);
-  
-  // Fuzzy Body Texture
-  fill(255, 215, 0);
-  ellipse(0, 0, 32, 24);
-  fill(0);
-  rect(-5, -11, 6, 22, 4); // Stripe 1
-  rect(6, -9, 5, 18, 3);   // Stripe 2
-  
-  // Vibrating Transparent Wings
-  fill(200, 230, 255, 100);
-  let wingMove = sin(frameCount * 50) * 15;
-  push(); rotate(-25 + wingMove); ellipse(-4, -14, 20, 10); pop();
-  push(); rotate(25 - wingMove); ellipse(-4, 14, 20, 10); pop();
-  
-  // Head & Eyes
-  fill(10);
-  ellipse(14, 0, 16, 16);
-  fill(255, 200);
-  ellipse(18, -3, 4, 4); // Eye glint
-  
-  // Tiny Legs
-  stroke(0);
-  strokeWeight(1);
-  line(-5, 10, -8, 15);
-  line(5, 10, 8, 15);
-  pop();
-
-  if (frameCount % 12 === 0) {
-    pollen.push({ x: beePos.x, y: beePos.y + hoverY, vx: random(-0.5, 0.5), vy: random(1, 2), a: 180 });
-  }
-}
-
-// --- Rest of functions ---
-
 function drawFallingPetals() {
   noStroke();
+  fill(255, 215, 0, 160);
   for (let i = petals.length - 1; i >= 0; i--) {
     let p = petals[i];
     push();
     translate(p.x, p.y);
     rotate(p.angle);
-    fill(255, 215, 0, 180);
-    ellipse(0, 0, 18, 9);
-    fill(255, 255, 255, 50); // Hint of shine
-    ellipse(-2, -2, 10, 3);
+    ellipse(0, 0, 16, 8);
     pop();
     p.y += p.speed;
     p.x += p.drift + sin(frameCount) * 0.5;
@@ -310,14 +252,78 @@ function drawFallingPetals() {
   }
 }
 
+// --- REMAINDER OF YOUR ORIGINAL FUNCTIONS ---
+
+function drawDynamicSky() {
+  let inter = map(mouseX, 0, width, 0, 1);
+  let c1 = color(110, 155, 195); 
+  let c2 = color(255, 150, 100); 
+  let bg = lerpColor(c1, c2, inter);
+  background(bg);
+}
+
+function drawSun() {
+  fill(255, 230, 0, 180);
+  noStroke();
+  ellipse(mouseX, mouseY, 60, 60);
+  fill(255, 255, 255, 80);
+  ellipse(mouseX, mouseY, 80, 80); 
+}
+
+function drawCloud(x, y) {
+  fill(210, 210, 210, 200);
+  noStroke();
+  ellipse(x, y, 50, 30);
+  ellipse(x + 20, y - 10, 40, 30);
+  ellipse(x + 40, y, 50, 30);
+}
+
+function drawStem(bx, by, fx, fy, bend) {
+  stroke(100, 150, 50);
+  strokeWeight(width > 600 ? 12 : 8);
+  noFill();
+  beginShape();
+  vertex(bx, by);
+  quadraticVertex(bx, by - stemHeight/2, fx, fy);
+  endShape();
+
+  if (stemHeight > 50) {
+    noStroke();
+    fill(80, 130, 40);
+    push();
+    let lx1 = lerp(bx, fx, 0.4);
+    let ly1 = lerp(by, fy, 0.4);
+    translate(lx1, ly1);
+    rotate(bend - 45);
+    ellipse(0, 0, (width > 600 ? 60 : 40) * bloomScale + 20, (width > 600 ? 30 : 20) * bloomScale + 10);
+    pop();
+  }
+}
+
+function drawSeeds(scaleVal) {
+  let sSize = width > 600 ? 90 : 60;
+  fill(60, 40, 20); 
+  noStroke();
+  ellipse(0, 0, sSize * scaleVal, sSize * scaleVal);
+  if (numSeeds < maxSeeds) numSeeds += 2;
+  let angleStep = 137.5; 
+  let scalar = (sSize / 30) * scaleVal;
+  for (let i = 0; i < numSeeds; i++) {
+    let r = scalar * sqrt(i);
+    let theta = i * angleStep;
+    fill(40, 20, 0);
+    ellipse(r * cos(theta), r * sin(theta), 4 * scaleVal, 4 * scaleVal);
+  }
+}
+
 function drawPollen() {
   noStroke();
   for (let i = pollen.length - 1; i >= 0; i--) {
     let p = pollen[i];
-    fill(255, 255, 150, p.a);
+    fill(255, 255, 0, p.a);
     ellipse(p.x, p.y, 3, 3);
     p.y += p.vy;
-    p.a -= 4;
+    p.a -= 5;
     if (p.a <= 0) pollen.splice(i, 1);
   }
 }
@@ -325,57 +331,14 @@ function drawPollen() {
 function drawPulsingHeart() {
   push();
   let pulse = map(sin(frameCount * 6), -1, 1, 0.8, 1.2);
-  translate(beePos.x, beePos.y - 45);
+  translate(beePos.x, beePos.y - 35);
   scale(pulse);
-  fill(255, 60, 80);
+  fill(255, 50, 50);
   noStroke();
-  ellipse(-5, 0, 10, 10);
-  ellipse(5, 0, 10, 10);
-  triangle(-10, 0, 10, 0, 0, 13);
+  ellipse(-4, 0, 8, 8);
+  ellipse(4, 0, 8, 8);
+  triangle(-8, 0, 8, 0, 0, 10);
   pop();
-}
-
-function drawDynamicSky() {
-  let inter = map(mouseX, 0, width, 0, 1);
-  background(lerpColor(color(110, 155, 195), color(255, 160, 110), inter));
-}
-
-function drawSun() {
-  noStroke();
-  fill(255, 240, 150, 150);
-  ellipse(mouseX, mouseY, 90, 90);
-  fill(255, 230, 0, 200);
-  ellipse(mouseX, mouseY, 65, 65);
-}
-
-function drawCloud(x, y) {
-  fill(255, 255, 255, 210);
-  noStroke();
-  ellipse(x, y, 60, 35);
-  ellipse(x + 25, y - 15, 50, 40);
-  ellipse(x + 50, y, 60, 35);
-}
-
-function drawStem(bx, by, fx, fy, bend) {
-  stroke(80, 130, 40);
-  strokeWeight(width > 600 ? 14 : 10);
-  noFill();
-  beginShape();
-  vertex(bx, by);
-  quadraticVertex(bx, by - stemHeight/2, fx, fy);
-  endShape();
-  
-  if (stemHeight > 50) {
-    push();
-    let lx = lerp(bx, fx, 0.5);
-    let ly = lerp(by, fy, 0.5);
-    translate(lx, ly);
-    rotate(bend - 45);
-    fill(60, 110, 35);
-    noStroke();
-    ellipse(0, 0, 50 * bloomScale + 10, 25 * bloomScale + 5);
-    pop();
-  }
 }
 
 function drawSideLetter() {
@@ -387,22 +350,17 @@ function drawSideLetter() {
   scale(letterScale);
   rectMode(CENTER);
   let cardW = width > 600 ? 380 : width * 0.9;
-  let cardH = width > 600 ? 320 : 380; 
-  
-  // Shadow
-  fill(0, 30);
-  rect(8, 8, cardW, cardH, 15);
-  
-  fill(255, 254, 250);
-  stroke(220, 200, 170);
-  strokeWeight(4);
+  let cardH = width > 600 ? 300 : 360; 
+  fill(0, 20); rect(5, 5, cardW, cardH, 15);
+  fill(255, 253, 245);
+  stroke(200, 180, 150);
+  strokeWeight(3);
   rect(0, 0, cardW, cardH, 15);
-  
-  fill(60, 50, 30);
+  fill(50, 40, 20);
   noStroke();
   textAlign(CENTER, CENTER);
   textFont('Georgia');
-  textSize(width > 600 ? 19 : 16);
-  text(myLetter, 0, 0, cardW - 60, cardH - 50);
+  textSize(width > 600 ? 18 : 15);
+  text(myLetter, 0, 0, cardW - 50, cardH - 40);
   pop();
 }
