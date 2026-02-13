@@ -70,19 +70,19 @@ function mousePressed() {
   }
   lastTapTime = currentTime;
 
-  // 2. Open Envelope Detection
+  // 2. Open Envelope Detection (Responsive Position)
   if (showLetter && !letterOpened) {
     let posX = width > 800 ? width * 0.75 : width / 2;
-    let posY = width > 800 ? height / 2 : height * 0.35;
+    let posY = width > 800 ? height / 2 : height * 0.75; // Moved down for mobile
     if (dist(mouseX, mouseY, posX, posY) < 60) {
       letterOpened = true;
     }
   }
 
-  // 3. Close Button Detection
+  // 3. Close Button Detection (Responsive Position)
   if (letterOpened && !letterDismissed) {
     let posX = width > 800 ? width * 0.75 : width / 2;
-    let posY = width > 800 ? height / 2 : height * 0.35;
+    let posY = width > 800 ? height / 2 : height * 0.75; // Moved down for mobile
     let cardW = width > 600 ? 380 : width * 0.9;
     let cardH = width > 600 ? 300 : 360;
     let bx = posX + (cardW / 2) - 25;
@@ -183,8 +183,9 @@ function draw() {
 
 function drawClosedEnvelope() {
   push();
+  // Responsive positioning: Right side for desktop, Bottom-center for mobile
   let posX = width > 800 ? width * 0.75 : width / 2;
-  let posY = width > 800 ? height / 2 : height * 0.35;
+  let posY = width > 800 ? height / 2 : height * 0.75;
   let hover = sin(frameCount * 3) * 8;
   translate(posX, posY + hover);
   
@@ -213,7 +214,7 @@ function drawClosedEnvelope() {
 function drawCloseButton() {
   push();
   let posX = width > 800 ? width * 0.75 : width / 2;
-  let posY = width > 800 ? height / 2 : height * 0.35;
+  let posY = width > 800 ? height / 2 : height * 0.75;
   let cardW = width > 600 ? 380 : width * 0.9;
   let cardH = width > 600 ? 300 : 360;
   translate(posX, posY);
@@ -376,7 +377,7 @@ function drawSideLetter() {
   if (letterScale < 1.0) letterScale = lerp(letterScale, 1.0, 0.05);
   push();
   let posX = width > 800 ? width * 0.75 : width / 2;
-  let posY = width > 800 ? height / 2 : height * 0.35;
+  let posY = width > 800 ? height / 2 : height * 0.75; // Moved down for mobile
   translate(posX, posY); scale(letterScale); rectMode(CENTER);
   let cardW = width > 600 ? 380 : width * 0.9;
   let cardH = width > 600 ? 300 : 360; 
