@@ -3,14 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Mobile Sunflower</title>
+    <title>Sunflower Garden</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.js"></script>
     <style>
         body {
             margin: 0;
             padding: 0;
-            overflow: hidden; /* Prevents bouncing/scrolling on mobile */
-            touch-action: none; /* Prevents the screen from moving when you touch the sun */
+            overflow: hidden; /* Fixes the "double result" / scrollbar bug */
+            background-color: #222;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            touch-action: none; /* Helps mobile touch follow the sun better */
+        }
+        canvas {
+            display: block;
         }
     </style>
 </head>
