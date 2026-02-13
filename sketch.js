@@ -43,6 +43,11 @@ function initGarden() {
   }
 }
 
+function windowResized() {
+  resizeCanvas(windowWidth, windowHeight);
+  maxStemHeight = height * 0.6;
+}
+
 function mousePressed() {
   let currentTime = millis();
   if (currentTime - lastTapTime < 300) {
@@ -51,15 +56,10 @@ function mousePressed() {
   lastTapTime = currentTime;
 }
 
-function windowResized() {
-  resizeCanvas(windowWidth, windowHeight);
-  maxStemHeight = height * 0.6;
-}
-
 function draw() {
   drawSky();
   
-  // Rain
+  // Rain particles
   stroke(174, 194, 224, 150); 
   strokeWeight(2);
   for (let i = raindrops.length - 1; i >= 0; i--) {
@@ -69,7 +69,7 @@ function draw() {
     if (r.y > height - 60) raindrops.splice(i, 1);
   }
 
-  // Clouds
+  // Drifting Clouds
   for (let c of clouds) {
     drawCloud(c.x, c.y);
     c.x += c.speed;
@@ -86,7 +86,7 @@ function draw() {
   fill(139, 94, 60); 
   rect(0, height - 60, width, 60);
 
-  // Sunflower Logic
+  // Growth & Bloom Logic
   if (stemHeight < maxStemHeight) stemHeight += 2;
   
   let bend = map(mouseX, 0, width, -width * 0.1, width * 0.1);
@@ -125,6 +125,8 @@ function drawSun() {
   fill(255, 230, 0, 180);
   noStroke();
   ellipse(mouseX, mouseY, 60, 60);
+  fill(255, 255, 255, 80);
+  ellipse(mouseX, mouseY, 80, 80); 
 }
 
 function drawCloud(x, y) {
@@ -148,11 +150,13 @@ function drawStem(bx, by, fx, fy, bend) {
 function drawPetals(scaleVal) {
   fill(255, 215, 0); 
   stroke(218, 165, 32); 
+  let petalCount = 20;
   let pSize = width > 600 ? 100 : 70;
-  for (let i = 0; i < 20; i++) {
+  for (let i = 0; i < petalCount; i++) {
     push();
-    rotate(i * 18);
-    ellipse(pSize/2 + 20, 0, pSize * scaleVal, (pSize/3) * scaleVal);
+    rotate(i * (360 / petalCount));
+    let pLen = pSize * scaleVal;
+    ellipse(pLen/2 + 20, 0, pLen, (pSize/3) * scaleVal);
     pop();
   }
 }
@@ -164,7 +168,7 @@ function drawSeeds(scaleVal) {
   ellipse(0, 0, sSize * scaleVal, sSize * scaleVal);
 }
 
-// --- NEW ENHANCED FUNCTIONS ---
+// --- ENHANCED FEATURES ---
 
 function updateRealisticBee(tx, ty) {
   let target = createVector(tx + 40, ty + 20);
@@ -174,43 +178,40 @@ function updateRealisticBee(tx, ty) {
   push();
   translate(beePos.x, beePos.y);
   
-  // Wings (fluttering effect)
-  fill(255, 255, 255, 150);
-  stroke(200);
-  let wingFlap = sin(frameCount * 20) * 10;
+  // Fluttering Wings
+  fill(255, 255, 255, 160);
+  stroke(220);
+  let wingFlap = sin(frameCount * 30) * 15;
   push();
   rotate(wingFlap);
-  ellipse(-5, -8, 15, 20); // Top wing
+  ellipse(-5, -10, 12, 18);
   pop();
-  
-  // Body (Yellow and Black stripes)
+  push();
+  rotate(-wingFlap);
+  ellipse(-5, 10, 12, 18);
+  pop();
+
+  // Segmented Body
   noStroke();
-  fill(255, 200, 0); // Yellow body
-  ellipse(0, 0, 30, 20);
+  fill(255, 210, 0); // Yellow
+  ellipse(0, 0, 28, 18);
+  fill(0); // Stripes
+  rect(-4, -8, 4, 16, 2);
+  rect(3, -7, 4, 14, 2);
   
-  fill(0); // Black stripes
-  rect(-5, -9, 4, 18, 2);
-  rect(3, -8, 4, 16, 2);
-  
-  // Head
-  ellipse(12, 0, 12, 12);
-  
-  // Antennae
-  stroke(0);
-  strokeWeight(1);
-  line(15, -4, 20, -10);
-  line(15, 4, 20, 10);
+  // Head & Eyes
+  ellipse(12, 0, 10, 10);
+  fill(255);
+  ellipse(14, -2, 2, 2);
   
   pop();
 }
 
 function drawPulsingHeart() {
   push();
-  // Mathematical pulse using sin()
-  // map converts the -1 to 1 range of sin into a 0.8 to 1.2 scale range
-  let pulse = map(sin(frameCount * 5), -1, 1, 0.8, 1.2);
-  
-  translate(beePos.x, beePos.y - 30);
+  // Pulse logic using sin()
+  let pulse = map(sin(frameCount * 6), -1, 1, 0.85, 1.15);
+  translate(beePos.x, beePos.y - 35);
   scale(pulse);
   
   fill(255, 50, 50);
@@ -225,6 +226,7 @@ function drawPulsingHeart() {
 function drawSideLetter() {
   if (letterScale < 1.0) letterScale = lerp(letterScale, 1.0, 0.05);
   push();
+  // Layout: Side on desktop, top on mobile
   let posX = width > 800 ? width * 0.75 : width / 2;
   let posY = width > 800 ? height / 2 : height * 0.25;
   
@@ -237,6 +239,7 @@ function drawSideLetter() {
   let cardW = width > 600 ? 350 : width * 0.85;
   let cardH = width > 600 ? 220 : 180;
   rect(0, 0, cardW, cardH, 15);
+  
   fill(50, 40, 20);
   noStroke();
   textAlign(CENTER, CENTER);
