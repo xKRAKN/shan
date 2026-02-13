@@ -3,7 +3,7 @@ function setup() {
   pixelDensity(1); // Forces GitHub to render exactly like p5.js
   angleMode(DEGREES);
   initGarden();
-}
+
 let stemHeight = 0;
 let maxStemHeight;
 let bloomScale = 0;
@@ -164,4 +164,5 @@ function updateBee(tx, ty) {
   fill(255, 200, 0);
   ellipse(0, 0, 20, 14);
   pop();
+}
 }
