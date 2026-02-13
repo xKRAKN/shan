@@ -1,7 +1,8 @@
 function setup() {
   createCanvas(600, 600);
-  pixelDensity(1); // Forces the same look on all screens
+  pixelDensity(1); // Add this line!
   angleMode(DEGREES);
+ 
 let stemHeight = 0;
 let maxStemHeight = 350;
 let bloomScale = 0;
