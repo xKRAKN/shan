@@ -104,16 +104,17 @@ function draw() {
   drawSun();
   drawGround(); 
 
-  // --- 4. Sunflower Growth (Now Two Flowers) ---
+  // 4. Sunflower Growth Logic
   if (stemHeight < maxStemHeight) stemHeight += 2;
   
   let bend = map(mouseX, 0, width, -width * 0.05, width * 0.05);
 
-  // FLOWER 1 (Slightly left)
-  drawSingleSunflower(width/2 - 60, height - 60, bend, 0.9); // 90% scale
+  // --- DRAWING TWO SUNFLOWERS ---
+  // Sunflower 1: Slightly to the left and 10% smaller
+  drawSingleSunflower(width/2 - 70, height - 60, bend, 0.9);
   
-  // FLOWER 2 (Main flower, slightly right)
-  drawSingleSunflower(width/2 + 40, height - 60, bend * 1.2, 1.0);
+  // Sunflower 2: Main flower (right)
+  drawSingleSunflower(width/2 + 30, height - 60, bend * 1.2, 1.0);
 
   if (stemHeight >= maxStemHeight) {
     if (bloomScale < 1.0) {
@@ -122,10 +123,11 @@ function draw() {
       showLetter = true; 
     }
     
-    // Bee follows the main flower
-    let fx = width/2 + 40 + (bend * 1.2);
-    let fy = height - 60 - stemHeight;
-    updateRealisticBee(fx, fy);
+    // Bee targets the head of the main flower
+    let fxMain = width/2 + 30 + (bend * 1.2);
+    let fyMain = height - 60 - stemHeight;
+    
+    updateRealisticBee(fxMain, fyMain);
     drawPollen(); 
     
     if (showLetter && frameCount % 60 === 0) {
@@ -140,31 +142,31 @@ function draw() {
   }
 }
 
-// HELPER: This draws one full sunflower at a specific location
-function drawSingleSunflower(baseX, baseY, bend, individualScale) {
+// --- NEW HELPER FOR MULTIPLE FLOWERS ---
+function drawSingleSunflower(baseX, baseY, bend, sFactor) {
   let fx = baseX + bend;
-  let fy = baseY - (stemHeight * individualScale);
+  let fy = baseY - (stemHeight * sFactor);
 
   // Shadow
   fill(0, 30);
   noStroke();
-  ellipse(baseX, baseY, 60 * bloomScale + 20, 10);
+  ellipse(baseX, baseY, (60 * bloomScale + 20) * sFactor, 10);
 
   drawStem(baseX, baseY, fx, fy, bend);
 
   if (stemHeight >= maxStemHeight) {
     push();
     translate(fx, fy);
-    let headTilt = constrain(map(mouseX, 0, width, -20, 20), -20, 20);
+    let headTilt = constrain(map(mouseX, 0, width, -25, 25), -25, 25);
     rotate(headTilt);
-    scale(individualScale);
+    scale(sFactor);
     drawPetals(bloomScale);
     drawSeeds(bloomScale); 
     pop();
   }
 }
 
-// --- Rest of your visual functions remain the same ---
+// --- VISUAL FUNCTIONS (Same logic as provided) ---
 
 function drawMountains() {
   noStroke();
@@ -183,7 +185,7 @@ function drawGround() {
   rect(0, height - 60, width, 60);
   for(let i = 0; i < width; i += 12) {
     let sway = sin(i + frameCount * 2) * 3;
-    fill(45, 85, 30);
+    fill(45, 85, 30); 
     triangle(i, height - 60, i + 12, height - 60, i + 6 + sway, height - 78);
     if (i % 72 === 0) {
       let fCol = (i % 144 === 0) ? color(255, 150, 180) : color(150, 200, 255);
@@ -279,8 +281,8 @@ function drawStem(bx, by, fx, fy, bend) {
   endShape();
   if (stemHeight > 50) {
     push();
-    let lx = lerp(bx, fx, 0.5);
-    let ly = lerp(by, fy, 0.5);
+    let lx = lerp(bx, fx, 0.4);
+    let ly = lerp(by, fy, 0.4);
     translate(lx, ly);
     rotate(bend - 45);
     fill(80, 130, 40);
