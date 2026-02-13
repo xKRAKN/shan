@@ -22,7 +22,6 @@ let letterScale = 0;
 let showLetter = false;
 
 function setup() {
-  // Use windowWidth/Height for full background
   createCanvas(windowWidth, windowHeight);
   pixelDensity(1); 
   angleMode(DEGREES);
@@ -35,7 +34,7 @@ function initGarden() {
   numSeeds = 0;
   letterScale = 0;
   showLetter = false;
-  maxStemHeight = height * 0.6; // Responsive height
+  maxStemHeight = height * 0.6; 
   beePos = createVector(-50, 100);
   
   clouds = [];
@@ -44,7 +43,6 @@ function initGarden() {
   }
 }
 
-// Reset on Double Tap or Double Click
 function mousePressed() {
   let currentTime = millis();
   if (currentTime - lastTapTime < 300) {
@@ -61,7 +59,7 @@ function windowResized() {
 function draw() {
   drawSky();
   
-  // 1. Rain Logic
+  // Rain
   stroke(174, 194, 224, 150); 
   strokeWeight(2);
   for (let i = raindrops.length - 1; i >= 0; i--) {
@@ -71,7 +69,7 @@ function draw() {
     if (r.y > height - 60) raindrops.splice(i, 1);
   }
 
-  // 2. Clouds
+  // Clouds
   for (let c of clouds) {
     drawCloud(c.x, c.y);
     c.x += c.speed;
@@ -83,14 +81,12 @@ function draw() {
 
   drawSun();
 
-  // 3. Soil
+  // Soil
   noStroke();
   fill(139, 94, 60); 
   rect(0, height - 60, width, 60);
-  fill(0, 0, 0, 50); 
-  for(let i=0; i<width; i+=20) ellipse(i + (frameCount%20), height-30, 5, 5);
 
-  // 4. Sunflower Logic
+  // Sunflower Logic
   if (stemHeight < maxStemHeight) stemHeight += 2;
   
   let bend = map(mouseX, 0, width, -width * 0.1, width * 0.1);
@@ -103,25 +99,23 @@ function draw() {
     if (bloomScale < 1.0) {
       bloomScale += 0.01;
     } else {
-      showLetter = true; // Trigger letter after bloom
+      showLetter = true; 
     }
     
     push();
     translate(fx, fy);
     let headTilt = constrain(map(mouseX, 0, width, -30, 30), -30, 30);
     rotate(headTilt);
-    
     drawPetals(bloomScale);
     drawSeeds(bloomScale);
     pop();
 
-    updateBee(fx, fy);
+    updateRealisticBee(fx, fy);
   }
 
-  // 5. Letter & Heart Pop-up
   if (showLetter) {
     drawSideLetter();
-    drawHeartFollower();
+    drawPulsingHeart();
   }
 }
 
@@ -131,8 +125,6 @@ function drawSun() {
   fill(255, 230, 0, 180);
   noStroke();
   ellipse(mouseX, mouseY, 60, 60);
-  fill(255, 255, 255, 80);
-  ellipse(mouseX, mouseY, 80, 80); 
 }
 
 function drawCloud(x, y) {
@@ -151,27 +143,16 @@ function drawStem(bx, by, fx, fy, bend) {
   vertex(bx, by);
   quadraticVertex(bx, by - stemHeight/2, fx, fy);
   endShape();
-  
-  push();
-  translate(bx + (fx-bx)*0.4, by - 100);
-  rotate(bend * 0.5);
-  fill(80, 130, 40);
-  noStroke();
-  ellipse(0, 0, 80, 40);
-  pop();
 }
 
 function drawPetals(scaleVal) {
   fill(255, 215, 0); 
   stroke(218, 165, 32); 
-  strokeWeight(1);
-  let petalCount = 20;
-  let pSize = width > 600 ? 100 : 70; 
-  for (let i = 0; i < petalCount; i++) {
+  let pSize = width > 600 ? 100 : 70;
+  for (let i = 0; i < 20; i++) {
     push();
-    rotate(i * (360 / petalCount));
-    let pLen = pSize * scaleVal;
-    ellipse(pLen/2 + 20, 0, pLen, (pSize/3) * scaleVal);
+    rotate(i * 18);
+    ellipse(pSize/2 + 20, 0, pSize * scaleVal, (pSize/3) * scaleVal);
     pop();
   }
 }
@@ -181,37 +162,69 @@ function drawSeeds(scaleVal) {
   fill(60, 40, 20); 
   noStroke();
   ellipse(0, 0, sSize * scaleVal, sSize * scaleVal);
-  
-  if (numSeeds < maxSeeds) numSeeds += 2;
-  let angle = 137.5;
-  let scalar = (sSize/30) * scaleVal;
-  for (let i = 0; i < numSeeds; i++) {
-    let phi = i * angle;
-    let r = scalar * sqrt(i);
-    fill(40, 20, 0);
-    ellipse(r * cos(phi), r * sin(phi), 3 * scaleVal, 3 * scaleVal);
-  }
 }
 
-function updateBee(tx, ty) {
-  let target = createVector(tx, ty + 40);
+// --- NEW ENHANCED FUNCTIONS ---
+
+function updateRealisticBee(tx, ty) {
+  let target = createVector(tx + 40, ty + 20);
   beePos.x = lerp(beePos.x, target.x, 0.05);
   beePos.y = lerp(beePos.y, target.y, 0.05);
+  
   push();
   translate(beePos.x, beePos.y);
-  fill(255, 255, 255, 180);
-  ellipse(-5, -5, 15, 10);
-  ellipse(-5, 5, 15, 10);
-  fill(255, 200, 0);
+  
+  // Wings (fluttering effect)
+  fill(255, 255, 255, 150);
+  stroke(200);
+  let wingFlap = sin(frameCount * 20) * 10;
+  push();
+  rotate(wingFlap);
+  ellipse(-5, -8, 15, 20); // Top wing
+  pop();
+  
+  // Body (Yellow and Black stripes)
+  noStroke();
+  fill(255, 200, 0); // Yellow body
+  ellipse(0, 0, 30, 20);
+  
+  fill(0); // Black stripes
+  rect(-5, -9, 4, 18, 2);
+  rect(3, -8, 4, 16, 2);
+  
+  // Head
+  ellipse(12, 0, 12, 12);
+  
+  // Antennae
   stroke(0);
-  ellipse(0, 0, 25, 18);
+  strokeWeight(1);
+  line(15, -4, 20, -10);
+  line(15, 4, 20, 10);
+  
+  pop();
+}
+
+function drawPulsingHeart() {
+  push();
+  // Mathematical pulse using sin()
+  // map converts the -1 to 1 range of sin into a 0.8 to 1.2 scale range
+  let pulse = map(sin(frameCount * 5), -1, 1, 0.8, 1.2);
+  
+  translate(beePos.x, beePos.y - 30);
+  scale(pulse);
+  
+  fill(255, 50, 50);
+  noStroke();
+  let hSize = 8;
+  ellipse(-hSize/2, 0, hSize, hSize);
+  ellipse(hSize/2, 0, hSize, hSize);
+  triangle(-hSize, 0, hSize, 0, 0, hSize + 2);
   pop();
 }
 
 function drawSideLetter() {
   if (letterScale < 1.0) letterScale = lerp(letterScale, 1.0, 0.05);
   push();
-  // Responsive positioning: Side on desktop, centered higher up on mobile
   let posX = width > 800 ? width * 0.75 : width / 2;
   let posY = width > 800 ? height / 2 : height * 0.25;
   
@@ -230,18 +243,5 @@ function drawSideLetter() {
   textFont('Georgia');
   textSize(width > 600 ? 18 : 14);
   text(myLetter, 0, 0, cardW - 40, cardH - 40);
-  pop();
-}
-
-function drawHeartFollower() {
-  push();
-  translate(beePos.x, beePos.y - 25); // Float slightly above the bee
-  fill(255, 50, 50);
-  noStroke();
-  // Simple heart shape
-  let hSize = 10;
-  ellipse(-hSize/2, 0, hSize, hSize);
-  ellipse(hSize/2, 0, hSize, hSize);
-  triangle(-hSize, 0, hSize, 0, 0, hSize);
   pop();
 }
