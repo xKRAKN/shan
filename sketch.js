@@ -4,6 +4,10 @@ function setup() {
   angleMode(DEGREES);
   initGarden();
 }
+// --- NEW Audio Variables ---
+let bgMusic;
+let isMusicPlaying = false;
+
 // --- Variables ---
 let stemHeight = 0;
 let maxStemHeight;
@@ -13,15 +17,20 @@ let maxSeeds = 250;
 
 let clouds = [];
 let raindrops = [];
-let splashes = []; // For rain impact
-let pollen = [];   // For the bee
+let splashes = []; 
+let pollen = [];   
 let beePos;
 let lastTapTime = 0;
 
-// --- Letter & Heart Variables ---
 let myLetter = "To someone special,\n\nJust like this sunflower,\nyou make the world a little brighter.\n\nKeep blooming!";
 let letterScale = 0;
 let showLetter = false;
+
+// --- PRELOAD: Load music before the sketch starts ---
+function preload() {
+  // Pointing to your specific song choice
+  bgMusic = loadSound('sunflower.mp3'); 
+}
 
 function setup() {
   createCanvas(windowWidth, windowHeight);
@@ -54,6 +63,13 @@ function windowResized() {
 }
 
 function mousePressed() {
+  // START MUSIC: Interaction required by browsers
+  if (!isMusicPlaying && bgMusic) {
+    bgMusic.loop();
+    bgMusic.setVolume(0.4); 
+    isMusicPlaying = true;
+  }
+
   let currentTime = millis();
   if (currentTime - lastTapTime < 300) {
     initGarden();
@@ -62,7 +78,7 @@ function mousePressed() {
 }
 
 function draw() {
-  drawDynamicSky(); // Updated: Gradient Sky
+  drawDynamicSky(); 
   
   // 1. Rain & Splash Logic
   strokeWeight(2);
@@ -72,14 +88,12 @@ function draw() {
     line(r.x, r.y, r.x, r.y + 10);
     r.y += r.speed;
     
-    // Splash when hitting ground
     if (r.y > height - 60) {
       splashes.push({ x: r.x, y: height - 60, r: 1, a: 255 });
       raindrops.splice(i, 1);
     }
   }
   
-  // Draw Splashes
   noFill();
   for (let i = splashes.length - 1; i >= 0; i--) {
     let s = splashes[i];
@@ -134,21 +148,27 @@ function draw() {
     pop();
 
     updateRealisticBee(fx, fy);
-    drawPollen(); // Updated: Bee leaves a trail
+    drawPollen(); 
   }
 
-  // 5. Letter & Heart
   if (showLetter) {
     drawSideLetter();
     drawPulsingHeart();
   }
+
+  // Visual Hint to start music
+  if (!isMusicPlaying) {
+    fill(255, 200);
+    textAlign(CENTER);
+    textSize(14);
+    text("Tap to play 'Sunflower'", width/2, height - 20);
+  }
 }
 
 function drawDynamicSky() {
-  // Changes sky based on sun (mouse) position
   let inter = map(mouseX, 0, width, 0, 1);
-  let c1 = color(110, 155, 195); // Rain Blue
-  let c2 = color(255, 150, 100); // Sunset Orange
+  let c1 = color(110, 155, 195); 
+  let c2 = color(255, 150, 100); 
   let bg = lerpColor(c1, c2, inter);
   background(bg);
 }
@@ -157,8 +177,6 @@ function drawSun() {
   fill(255, 230, 0, 180);
   noStroke();
   ellipse(mouseX, mouseY, 60, 60);
-  fill(255, 255, 255, 80);
-  ellipse(mouseX, mouseY, 80, 80); 
 }
 
 function drawCloud(x, y) {
@@ -213,17 +231,13 @@ function drawPetals(scaleVal) {
 
 function drawSeeds(scaleVal) {
   let sSize = width > 600 ? 90 : 60;
-  
-  // Suggestion 1: Glow effect
   for (let i = 8; i > 0; i--) {
     fill(255, 255, 100, 12 - i);
     ellipse(0, 0, (sSize * scaleVal) + (i * 8));
   }
-
   fill(60, 40, 20); 
   noStroke();
   ellipse(0, 0, sSize * scaleVal, sSize * scaleVal);
-  
   if (numSeeds < maxSeeds) numSeeds += 2;
   let angleStep = 137.5; 
   let scalar = (sSize / 30) * scaleVal;
@@ -239,12 +253,9 @@ function updateRealisticBee(tx, ty) {
   let target = createVector(tx + 40, ty + 20);
   beePos.x = lerp(beePos.x, target.x, 0.05);
   beePos.y = lerp(beePos.y, target.y, 0.05);
-  
-  // Suggestion 2: Pollen particles
   if (frameCount % 10 === 0) {
     pollen.push({ x: beePos.x, y: beePos.y, vx: random(-1, 1), vy: random(0, 2), a: 200 });
   }
-
   push();
   translate(beePos.x, beePos.y);
   fill(255, 255, 255, 160);
@@ -263,7 +274,6 @@ function updateRealisticBee(tx, ty) {
 
 function drawPollen() {
   noStroke();
-  fill(255, 255, 0);
   for (let i = pollen.length - 1; i >= 0; i--) {
     let p = pollen[i];
     fill(255, 255, 0, p.a);
