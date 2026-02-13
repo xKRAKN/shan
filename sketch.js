@@ -15,6 +15,7 @@ let clouds = [];
 let raindrops = [];
 let splashes = []; 
 let pollen = [];   
+let petals = [];   // NEW: For the falling petal effect
 let beePos;
 let lastTapTime = 0;
 
@@ -41,6 +42,7 @@ function initGarden() {
   raindrops = [];
   splashes = [];
   pollen = [];
+  petals = []; // Reset petals
   
   clouds = [];
   for (let i = 0; i < 4; i++) {
@@ -133,11 +135,44 @@ function draw() {
 
     updateRealisticBee(fx, fy);
     drawPollen(); 
+    
+    // NEW: Trigger falling petals once fully grown
+    if (showLetter && frameCount % 60 === 0) {
+       petals.push({ 
+         x: random(width), 
+         y: -20, 
+         speed: random(1, 2), 
+         angle: random(360), 
+         rotSpeed: random(1, 3),
+         drift: random(-1, 1)
+       });
+    }
+    drawFallingPetals();
   }
 
   if (showLetter) {
     drawSideLetter();
     drawPulsingHeart();
+  }
+}
+
+// --- NEW FUNCTION: Falling Petal Animation ---
+function drawFallingPetals() {
+  noStroke();
+  fill(255, 215, 0, 180); // Sunflower yellow
+  for (let i = petals.length - 1; i >= 0; i--) {
+    let p = petals[i];
+    push();
+    translate(p.x, p.y);
+    rotate(p.angle);
+    ellipse(0, 0, 15, 8); // Small petal shape
+    pop();
+    
+    p.y += p.speed;
+    p.x += p.drift + sin(frameCount) * 0.5; // Slight swaying
+    p.angle += p.rotSpeed;
+    
+    if (p.y > height) petals.splice(i, 1);
   }
 }
 
@@ -288,23 +323,19 @@ function drawSideLetter() {
 
   let cardW = width > 600 ? 380 : width * 0.9;
   textFont('Georgia');
-  textSize(width > 600 ? 18 : 16);
+  textSize(width > 600 ? 18 : 15);
   
-  // Calculate height based on message length
   let wrapWidth = cardW - 50;
   let cardH = width > 600 ? 280 : 320; 
 
-  // Shadow
   fill(0, 20);
   rect(5, 5, cardW, cardH, 15);
 
-  // Card
   fill(255, 253, 245);
   stroke(200, 180, 150);
   strokeWeight(3);
   rect(0, 0, cardW, cardH, 15);
   
-  // Text
   fill(50, 40, 20);
   noStroke();
   textAlign(CENTER, CENTER);
