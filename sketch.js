@@ -4,6 +4,12 @@ function setup() {
   angleMode(DEGREES);
   initGarden();
 }
+function setup() {
+  createCanvas(windowWidth, windowHeight);
+  pixelDensity(1); // THIS IS THE KEY: it stops high-res screens from changing the scale
+  angleMode(DEGREES);
+  initGarden();
+}
 // --- Variables ---
 let stemHeight = 0;
 let maxStemHeight;
@@ -15,12 +21,12 @@ let clouds = [];
 let raindrops = [];
 let splashes = []; 
 let pollen = [];   
-let petals = [];   
+let petals = [];   // Added for the falling effect
 let beePos;
 let lastTapTime = 0;
 
 // --- Letter & Heart Variables ---
-let myLetter = "To Shashan,\n\nI really like you and that is why I want to know you more. I want you to know that I am always here when you need someone.\n\nJust like these sunflowers, you make the world a little brighter. Keep blooming!\n\n— With love";
+let myLetter = "To Shashan,\n\nI really like you and that is why I want to know you more. I want you to know that I am always here when you need someone.\n\nJust like this sunflower, you make the world a little brighter. Keep blooming!\n\n— With love";
 let letterScale = 0;
 let showLetter = false;
 
@@ -65,7 +71,7 @@ function mousePressed() {
 
 function draw() {
   drawDynamicSky(); 
-  drawMountains(); 
+  drawMountains(); // New background depth
   
   // 1. Rain & Splash Logic
   strokeWeight(2);
@@ -102,19 +108,23 @@ function draw() {
   }
 
   drawSun();
+
+  // 3. Ground & Realistic Grass
   drawGround(); 
 
-  // 4. Sunflower Growth Logic
+  // 4. Sunflower Growth
   if (stemHeight < maxStemHeight) stemHeight += 2;
   
-  let bend = map(mouseX, 0, width, -width * 0.05, width * 0.05);
+  let bend = map(mouseX, 0, width, -width * 0.1, width * 0.1);
+  let fx = width/2 + bend;
+  let fy = height - 60 - stemHeight;
 
-  // --- DRAWING TWO SUNFLOWERS ---
-  // Sunflower 1: Slightly to the left and 10% smaller
-  drawSingleSunflower(width/2 - 70, height - 60, bend, 0.9);
-  
-  // Sunflower 2: Main flower (right)
-  drawSingleSunflower(width/2 + 30, height - 60, bend * 1.2, 1.0);
+  // Subtle shadow under the plant
+  fill(0, 30);
+  noStroke();
+  ellipse(width/2, height - 60, 60 * bloomScale + 20, 10);
+
+  drawStem(width/2, height-60, fx, fy, bend);
 
   if (stemHeight >= maxStemHeight) {
     if (bloomScale < 1.0) {
@@ -123,13 +133,18 @@ function draw() {
       showLetter = true; 
     }
     
-    // Bee targets the head of the main flower
-    let fxMain = width/2 + 30 + (bend * 1.2);
-    let fyMain = height - 60 - stemHeight;
-    
-    updateRealisticBee(fxMain, fyMain);
+    push();
+    translate(fx, fy);
+    let headTilt = constrain(map(mouseX, 0, width, -30, 30), -30, 30);
+    rotate(headTilt);
+    drawPetals(bloomScale);
+    drawSeeds(bloomScale); 
+    pop();
+
+    updateRealisticBee(fx, fy);
     drawPollen(); 
     
+    // Trigger falling petals effect
     if (showLetter && frameCount % 60 === 0) {
        petals.push({ x: random(width), y: -20, speed: random(1, 2), angle: random(360), rotSpeed: random(1, 3), drift: random(-1, 1)});
     }
@@ -142,31 +157,7 @@ function draw() {
   }
 }
 
-// --- NEW HELPER FOR MULTIPLE FLOWERS ---
-function drawSingleSunflower(baseX, baseY, bend, sFactor) {
-  let fx = baseX + bend;
-  let fy = baseY - (stemHeight * sFactor);
-
-  // Shadow
-  fill(0, 30);
-  noStroke();
-  ellipse(baseX, baseY, (60 * bloomScale + 20) * sFactor, 10);
-
-  drawStem(baseX, baseY, fx, fy, bend);
-
-  if (stemHeight >= maxStemHeight) {
-    push();
-    translate(fx, fy);
-    let headTilt = constrain(map(mouseX, 0, width, -25, 25), -25, 25);
-    rotate(headTilt);
-    scale(sFactor);
-    drawPetals(bloomScale);
-    drawSeeds(bloomScale); 
-    pop();
-  }
-}
-
-// --- VISUAL FUNCTIONS (Same logic as provided) ---
+// --- NEW/UPDATED VISUAL FUNCTIONS ---
 
 function drawMountains() {
   noStroke();
@@ -181,12 +172,15 @@ function drawMountains() {
 
 function drawGround() {
   noStroke();
-  fill(110, 80, 50); 
+  fill(110, 80, 50); // Soil
   rect(0, height - 60, width, 60);
+  
   for(let i = 0; i < width; i += 12) {
     let sway = sin(i + frameCount * 2) * 3;
-    fill(45, 85, 30); 
+    fill(45, 85, 30); // Dark grass
     triangle(i, height - 60, i + 12, height - 60, i + 6 + sway, height - 78);
+    
+    // Wildflowers every few steps
     if (i % 72 === 0) {
       let fCol = (i % 144 === 0) ? color(255, 150, 180) : color(150, 200, 255);
       push();
@@ -204,17 +198,30 @@ function updateRealisticBee(tx, ty) {
   beePos.x = lerp(beePos.x, target.x, 0.05);
   beePos.y = lerp(beePos.y, target.y, 0.05);
   let hover = sin(frameCount * 8) * 5;
+
   push();
   translate(beePos.x, beePos.y + hover);
+  
+  // High-speed vibrating wings
   fill(255, 255, 255, 120);
   let v = sin(frameCount * 50) * 15;
   push(); rotate(-25 + v); ellipse(-4, -12, 18, 10); pop();
   push(); rotate(25 - v); ellipse(-4, 12, 18, 10); pop();
-  fill(255, 210, 0); ellipse(0, 0, 30, 22);
-  fill(0); rect(-4, -10, 5, 20, 3); rect(6, -9, 4, 18, 3);
-  fill(20); ellipse(13, 0, 15, 15);
-  fill(255, 220); ellipse(16, -3, 3, 3);
+
+  // Fuzzy Body
+  fill(255, 210, 0);
+  ellipse(0, 0, 30, 22);
+  fill(0);
+  rect(-4, -10, 5, 20, 3); // Stripe 1
+  rect(6, -9, 4, 18, 3);   // Stripe 2
+  
+  // Head & Eyes
+  fill(20);
+  ellipse(13, 0, 15, 15);
+  fill(255, 220);
+  ellipse(16, -3, 3, 3); // Glint
   pop();
+
   if (frameCount % 10 === 0) {
     pollen.push({ x: beePos.x, y: beePos.y + hover, vx: random(-1, 1), vy: random(1, 2), a: 200 });
   }
@@ -225,6 +232,7 @@ function drawPetals(scaleVal) {
   for (let i = 0; i < 24; i++) {
     push();
     rotate(i * 15);
+    // Two-tone petals for realism
     fill(218, 165, 32); 
     ellipse(pSize/3 + 10, 0, pSize * scaleVal, (pSize/4) * scaleVal);
     fill(255, 220, 0);
@@ -250,9 +258,14 @@ function drawFallingPetals() {
   }
 }
 
+// --- REMAINDER OF YOUR ORIGINAL FUNCTIONS ---
+
 function drawDynamicSky() {
   let inter = map(mouseX, 0, width, 0, 1);
-  background(lerpColor(color(110, 155, 195), color(255, 150, 100), inter));
+  let c1 = color(110, 155, 195); 
+  let c2 = color(255, 150, 100); 
+  let bg = lerpColor(c1, c2, inter);
+  background(bg);
 }
 
 function drawSun() {
@@ -279,15 +292,16 @@ function drawStem(bx, by, fx, fy, bend) {
   vertex(bx, by);
   quadraticVertex(bx, by - stemHeight/2, fx, fy);
   endShape();
+
   if (stemHeight > 50) {
-    push();
-    let lx = lerp(bx, fx, 0.4);
-    let ly = lerp(by, fy, 0.4);
-    translate(lx, ly);
-    rotate(bend - 45);
-    fill(80, 130, 40);
     noStroke();
-    ellipse(0, 0, 40 * bloomScale + 20, 20 * bloomScale + 10);
+    fill(80, 130, 40);
+    push();
+    let lx1 = lerp(bx, fx, 0.4);
+    let ly1 = lerp(by, fy, 0.4);
+    translate(lx1, ly1);
+    rotate(bend - 45);
+    ellipse(0, 0, (width > 600 ? 60 : 40) * bloomScale + 20, (width > 600 ? 30 : 20) * bloomScale + 10);
     pop();
   }
 }
