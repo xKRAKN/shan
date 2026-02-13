@@ -1,3 +1,9 @@
+function setup() {
+  createCanvas(windowWidth, windowHeight);
+  pixelDensity(1); // THIS IS THE KEY: it stops high-res screens from changing the scale
+  angleMode(DEGREES);
+  initGarden();
+}
 let stemHeight = 0;
 let maxStemHeight = 350;
 let bloomScale = 0;
