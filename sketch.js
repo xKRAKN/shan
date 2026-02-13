@@ -20,7 +20,6 @@ let beePos;
 let lastTapTime = 0;
 
 // --- Letter & Heart Variables ---
-// Added a signature line to the message
 let myLetter = "To Shashan,\n\nI really like you and that is why I want to know you more. I want you to know that I am always here when you need someone.\n\nJust like this sunflower, you make the world a little brighter. Keep blooming!\n\n— With love";
 let letterScale = 0;
 let showLetter = false;
@@ -104,7 +103,7 @@ function draw() {
 
   drawSun();
 
-  // 3. Ground & Grass (Updated with tiny flowers)
+  // 3. Ground & Grass
   drawGround(); 
 
   // 4. Sunflower Growth
@@ -153,6 +152,8 @@ function draw() {
   }
 }
 
+// --- Background Components ---
+
 function drawMountains() {
   noStroke();
   fill(80, 110, 140, 150); 
@@ -165,40 +166,20 @@ function drawMountains() {
 
 function drawGround() {
   noStroke();
-  // Soil Base
   fill(139, 94, 60); 
   rect(0, height - 60, width, 60);
   
-  // Grass Layer
   for(let i = 0; i < width; i += 15) {
     let sway = sin(i + frameCount * 2) * 3;
     fill(60, 100, 40);
     triangle(i, height - 60, i + 15, height - 60, i + 7 + sway, height - 75);
     
-    // Tiny white/blue companion flowers
     if (i % 60 === 0) {
       fill(255, 255, 255, 200);
       ellipse(i + 7 + sway, height - 75, 5, 5);
       fill(255, 200, 0);
       ellipse(i + 7 + sway, height - 75, 2, 2);
     }
-  }
-}
-
-function drawFallingPetals() {
-  noStroke();
-  fill(255, 215, 0, 180); 
-  for (let i = petals.length - 1; i >= 0; i--) {
-    let p = petals[i];
-    push();
-    translate(p.x, p.y);
-    rotate(p.angle);
-    ellipse(0, 0, 15, 8);
-    pop();
-    p.y += p.speed;
-    p.x += p.drift + sin(frameCount) * 0.5;
-    p.angle += p.rotSpeed;
-    if (p.y > height) petals.splice(i, 1);
   }
 }
 
@@ -214,6 +195,8 @@ function drawSun() {
   fill(255, 230, 0, 180);
   noStroke();
   ellipse(mouseX, mouseY, 60, 60);
+  fill(255, 255, 255, 80);
+  ellipse(mouseX, mouseY, 80, 80); 
 }
 
 function drawCloud(x, y) {
@@ -223,6 +206,8 @@ function drawCloud(x, y) {
   ellipse(x + 20, y - 10, 40, 30);
   ellipse(x + 40, y, 50, 30);
 }
+
+// --- Sunflower Components ---
 
 function drawStem(bx, by, fx, fy, bend) {
   stroke(100, 150, 50);
@@ -275,18 +260,65 @@ function drawSeeds(scaleVal) {
   }
 }
 
+// --- NEW REALISTIC BEE ---
 function updateRealisticBee(tx, ty) {
   let target = createVector(tx + 40, ty + 20);
   beePos.x = lerp(beePos.x, target.x, 0.05);
   beePos.y = lerp(beePos.y, target.y, 0.05);
-  if (frameCount % 10 === 0) {
-    pollen.push({ x: beePos.x, y: beePos.y, vx: random(-1, 1), vy: random(0, 2), a: 200 });
-  }
+  
+  let hoverX = sin(frameCount * 5) * 5;
+  let hoverY = cos(frameCount * 5) * 5;
+
   push();
-  translate(beePos.x, beePos.y);
+  translate(beePos.x + hoverX, beePos.y + hoverY);
+  
+  // Wings (Vibrating)
+  fill(255, 255, 255, 120); 
+  let wingVibrate = sin(frameCount * 40) * 15;
+  push(); rotate(-30 + wingVibrate); ellipse(-5, -12, 18, 10); pop();
+  push(); rotate(30 - wingVibrate); ellipse(-5, 12, 18, 10); pop();
+
+  // Stinger
+  fill(0);
+  triangle(-15, 0, -10, -3, -10, 3);
+
+  // Body stripes
   fill(255, 210, 0);
-  ellipse(0, 0, 28, 18);
+  ellipse(0, 0, 30, 22);
+  fill(0);
+  rect(-4, -10, 5, 20, 2);
+  rect(5, -9, 4, 18, 2);
+  
+  // Head & Antennae
+  fill(20);
+  ellipse(12, 0, 14, 14);
+  stroke(0);
+  line(15, -5, 20, -12);
+  line(15, 5, 20, 12);
   pop();
+
+  if (frameCount % 10 === 0) {
+    pollen.push({ x: beePos.x, y: beePos.y, vx: random(-1, 1), vy: random(1, 2), a: 200 });
+  }
+}
+
+// --- Effects ---
+
+function drawFallingPetals() {
+  noStroke();
+  fill(255, 215, 0, 180); 
+  for (let i = petals.length - 1; i >= 0; i--) {
+    let p = petals[i];
+    push();
+    translate(p.x, p.y);
+    rotate(p.angle);
+    ellipse(0, 0, 15, 8);
+    pop();
+    p.y += p.speed;
+    p.x += p.drift + sin(frameCount) * 0.5;
+    p.angle += p.rotSpeed;
+    if (p.y > height) petals.splice(i, 1);
+  }
 }
 
 function drawPollen() {
@@ -323,7 +355,7 @@ function drawSideLetter() {
   scale(letterScale);
   rectMode(CENTER);
   let cardW = width > 600 ? 380 : width * 0.9;
-  let cardH = width > 600 ? 300 : 340; 
+  let cardH = width > 600 ? 300 : 360; 
   fill(255, 253, 245);
   stroke(200, 180, 150);
   strokeWeight(3);
