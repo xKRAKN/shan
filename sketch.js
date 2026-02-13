@@ -13,6 +13,8 @@ let maxSeeds = 250;
 
 let clouds = [];
 let raindrops = [];
+let splashes = []; // For rain impact
+let pollen = [];   // For the bee
 let beePos;
 let lastTapTime = 0;
 
@@ -36,6 +38,9 @@ function initGarden() {
   showLetter = false;
   maxStemHeight = height * 0.6; 
   beePos = createVector(-50, 100);
+  raindrops = [];
+  splashes = [];
+  pollen = [];
   
   clouds = [];
   for (let i = 0; i < 4; i++) {
@@ -57,16 +62,32 @@ function mousePressed() {
 }
 
 function draw() {
-  drawSky();
+  drawDynamicSky(); // Updated: Gradient Sky
   
-  // 1. Rain Logic
-  stroke(174, 194, 224, 150); 
+  // 1. Rain & Splash Logic
   strokeWeight(2);
   for (let i = raindrops.length - 1; i >= 0; i--) {
     let r = raindrops[i];
+    stroke(174, 194, 224, 150);
     line(r.x, r.y, r.x, r.y + 10);
     r.y += r.speed;
-    if (r.y > height - 60) raindrops.splice(i, 1);
+    
+    // Splash when hitting ground
+    if (r.y > height - 60) {
+      splashes.push({ x: r.x, y: height - 60, r: 1, a: 255 });
+      raindrops.splice(i, 1);
+    }
+  }
+  
+  // Draw Splashes
+  noFill();
+  for (let i = splashes.length - 1; i >= 0; i--) {
+    let s = splashes[i];
+    stroke(255, s.a);
+    ellipse(s.x, s.y, s.r, s.r/2);
+    s.r += 2;
+    s.a -= 10;
+    if (s.a <= 0) splashes.splice(i, 1);
   }
 
   // 2. Clouds
@@ -113,6 +134,7 @@ function draw() {
     pop();
 
     updateRealisticBee(fx, fy);
+    drawPollen(); // Updated: Bee leaves a trail
   }
 
   // 5. Letter & Heart
@@ -122,7 +144,14 @@ function draw() {
   }
 }
 
-function drawSky() { background(110, 155, 195); }
+function drawDynamicSky() {
+  // Changes sky based on sun (mouse) position
+  let inter = map(mouseX, 0, width, 0, 1);
+  let c1 = color(110, 155, 195); // Rain Blue
+  let c2 = color(255, 150, 100); // Sunset Orange
+  let bg = lerpColor(c1, c2, inter);
+  background(bg);
+}
 
 function drawSun() {
   fill(255, 230, 0, 180);
@@ -133,7 +162,7 @@ function drawSun() {
 }
 
 function drawCloud(x, y) {
-  fill(210);
+  fill(210, 210, 210, 200);
   noStroke();
   ellipse(x, y, 50, 30);
   ellipse(x + 20, y - 10, 40, 30);
@@ -149,11 +178,9 @@ function drawStem(bx, by, fx, fy, bend) {
   quadraticVertex(bx, by - stemHeight/2, fx, fy);
   endShape();
 
-  // Leaves
   if (stemHeight > 50) {
     noStroke();
     fill(80, 130, 40);
-    // Leaf 1
     push();
     let lx1 = lerp(bx, fx, 0.4);
     let ly1 = lerp(by, fy, 0.4);
@@ -161,7 +188,6 @@ function drawStem(bx, by, fx, fy, bend) {
     rotate(bend - 45);
     ellipse(0, 0, (width > 600 ? 60 : 40) * bloomScale + 20, (width > 600 ? 30 : 20) * bloomScale + 10);
     pop();
-    // Leaf 2
     push();
     let lx2 = lerp(bx, fx, 0.7);
     let ly2 = lerp(by, fy, 0.7);
@@ -185,9 +211,15 @@ function drawPetals(scaleVal) {
   }
 }
 
-
 function drawSeeds(scaleVal) {
   let sSize = width > 600 ? 90 : 60;
+  
+  // Suggestion 1: Glow effect
+  for (let i = 8; i > 0; i--) {
+    fill(255, 255, 100, 12 - i);
+    ellipse(0, 0, (sSize * scaleVal) + (i * 8));
+  }
+
   fill(60, 40, 20); 
   noStroke();
   ellipse(0, 0, sSize * scaleVal, sSize * scaleVal);
@@ -208,23 +240,39 @@ function updateRealisticBee(tx, ty) {
   beePos.x = lerp(beePos.x, target.x, 0.05);
   beePos.y = lerp(beePos.y, target.y, 0.05);
   
+  // Suggestion 2: Pollen particles
+  if (frameCount % 10 === 0) {
+    pollen.push({ x: beePos.x, y: beePos.y, vx: random(-1, 1), vy: random(0, 2), a: 200 });
+  }
+
   push();
   translate(beePos.x, beePos.y);
-  // Wings
   fill(255, 255, 255, 160);
   let wingFlap = sin(frameCount * 30) * 15;
   push(); rotate(wingFlap); ellipse(-5, -10, 12, 18); pop();
   push(); rotate(-wingFlap); ellipse(-5, 10, 12, 18); pop();
-  // Body
   noStroke();
   fill(255, 210, 0);
   ellipse(0, 0, 28, 18);
   fill(0); 
   rect(-4, -8, 4, 16, 2);
   rect(3, -7, 4, 14, 2);
-  // Head
   ellipse(12, 0, 10, 10);
   pop();
+}
+
+function drawPollen() {
+  noStroke();
+  fill(255, 255, 0);
+  for (let i = pollen.length - 1; i >= 0; i--) {
+    let p = pollen[i];
+    fill(255, 255, 0, p.a);
+    ellipse(p.x, p.y, 3, 3);
+    p.x += p.vx;
+    p.y += p.vy;
+    p.a -= 5;
+    if (p.a <= 0) pollen.splice(i, 1);
+  }
 }
 
 function drawPulsingHeart() {
