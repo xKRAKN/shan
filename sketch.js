@@ -70,19 +70,20 @@ function mousePressed() {
   }
   lastTapTime = currentTime;
 
-  // 2. Open Envelope Detection (Responsive Position)
+  // 2. Open Envelope Detection
   if (showLetter && !letterOpened) {
-    let posX = width > 800 ? width * 0.75 : width / 2;
-    let posY = width > 800 ? height / 2 : height * 0.75; // Moved down for mobile
+    // UPDATED POS: Moves to the right side on mobile (width * 0.8)
+    let posX = width > 800 ? width * 0.75 : width * 0.8;
+    let posY = width > 800 ? height / 2 : height * 0.6; 
     if (dist(mouseX, mouseY, posX, posY) < 60) {
       letterOpened = true;
     }
   }
 
-  // 3. Close Button Detection (Responsive Position)
+  // 3. Close Button Detection
   if (letterOpened && !letterDismissed) {
     let posX = width > 800 ? width * 0.75 : width / 2;
-    let posY = width > 800 ? height / 2 : height * 0.75; // Moved down for mobile
+    let posY = width > 800 ? height / 2 : height * 0.6; 
     let cardW = width > 600 ? 380 : width * 0.9;
     let cardH = width > 600 ? 300 : 360;
     let bx = posX + (cardW / 2) - 25;
@@ -170,11 +171,11 @@ function draw() {
   // Handle Letter States
   if (showLetter) {
     if (!letterOpened) {
-      drawClosedEnvelope(); // Waiting for click
+      drawClosedEnvelope(); 
     } else if (!letterDismissed) {
-      drawSideLetter();     // Original Letter function
-      drawPulsingHeart();   // Original Heart function
-      drawCloseButton();    // New Close Button
+      drawSideLetter();     
+      drawPulsingHeart();   
+      drawCloseButton();    
     }
   }
 }
@@ -183,12 +184,15 @@ function draw() {
 
 function drawClosedEnvelope() {
   push();
-  // Responsive positioning: Right side for desktop, Bottom-center for mobile
-  let posX = width > 800 ? width * 0.75 : width / 2;
-  let posY = width > 800 ? height / 2 : height * 0.75;
+  // MOBILE FIX: Moved from width/2 to width*0.8 to keep it away from the sunflower
+  let posX = width > 800 ? width * 0.75 : width * 0.8;
+  let posY = width > 800 ? height / 2 : height * 0.6;
   let hover = sin(frameCount * 3) * 8;
   translate(posX, posY + hover);
   
+  // Scale it down slightly for mobile side view
+  if (width <= 800) scale(0.8);
+
   rectMode(CENTER);
   fill(255, 245, 200);
   stroke(200, 180, 150);
@@ -202,7 +206,7 @@ function drawClosedEnvelope() {
   fill(100, 80, 50);
   textAlign(CENTER);
   textSize(14);
-  text("Tap to open", 0, 55);
+  text("Tap", 0, 55);
   
   fill(255, 100, 100);
   ellipse(-3, 0, 8, 8);
@@ -214,7 +218,7 @@ function drawClosedEnvelope() {
 function drawCloseButton() {
   push();
   let posX = width > 800 ? width * 0.75 : width / 2;
-  let posY = width > 800 ? height / 2 : height * 0.75;
+  let posY = width > 800 ? height / 2 : height * 0.6;
   let cardW = width > 600 ? 380 : width * 0.9;
   let cardH = width > 600 ? 300 : 360;
   translate(posX, posY);
@@ -377,7 +381,7 @@ function drawSideLetter() {
   if (letterScale < 1.0) letterScale = lerp(letterScale, 1.0, 0.05);
   push();
   let posX = width > 800 ? width * 0.75 : width / 2;
-  let posY = width > 800 ? height / 2 : height * 0.75; // Moved down for mobile
+  let posY = width > 800 ? height / 2 : height * 0.6; 
   translate(posX, posY); scale(letterScale); rectMode(CENTER);
   let cardW = width > 600 ? 380 : width * 0.9;
   let cardH = width > 600 ? 300 : 360; 
