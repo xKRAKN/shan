@@ -20,7 +20,8 @@ let beePos;
 let lastTapTime = 0;
 
 // --- Letter & Heart Variables ---
-let myLetter = "To Shashan,\n\nI really like you and that is why I want to know you more. I want you to know that I am always here when you need someone.\n\nJust like this sunflower, you make the world a little brighter. Keep blooming!\n\n— With love";
+// "— With love" removed below:
+let myLetter = "To Shashan,\n\nI really like you and that is why I want to know you more. I want you to know that I am always here when you need someone.\n\nJust like this sunflower, you make the world a little brighter. Keep blooming!";
 let letterScale = 0;
 let showLetter = false;
 
