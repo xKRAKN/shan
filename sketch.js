@@ -13,13 +13,12 @@ let maxSeeds = 250;
 
 let clouds = [];
 let raindrops = [];
-let splashes = []; // For rain impact
-let pollen = [];   // For the bee trail
+let splashes = []; 
+let pollen = [];   
 let beePos;
 let lastTapTime = 0;
 
 // --- Letter & Heart Variables ---
-// Updated with your personal message for Shashan
 let myLetter = "To Shashan,\n\nI really like you and that is why I want to know you more. I want you to know that I am always here when you need someone.\n\nJust like this sunflower, you make the world a little brighter. Keep blooming!";
 let letterScale = 0;
 let showLetter = false;
@@ -56,7 +55,6 @@ function windowResized() {
 
 function mousePressed() {
   let currentTime = millis();
-  // Double tap to reset the animation
   if (currentTime - lastTapTime < 300) {
     initGarden();
   }
@@ -80,7 +78,6 @@ function draw() {
     }
   }
   
-  // Draw Splashes
   noFill();
   for (let i = splashes.length - 1; i >= 0; i--) {
     let s = splashes[i];
@@ -138,7 +135,6 @@ function draw() {
     drawPollen(); 
   }
 
-  // 5. Letter & Heart
   if (showLetter) {
     drawSideLetter();
     drawPulsingHeart();
@@ -285,21 +281,33 @@ function drawSideLetter() {
   if (letterScale < 1.0) letterScale = lerp(letterScale, 1.0, 0.05);
   push();
   let posX = width > 800 ? width * 0.75 : width / 2;
-  let posY = width > 800 ? height / 2 : height * 0.25;
+  let posY = width > 800 ? height / 2 : height * 0.35;
   translate(posX, posY);
   scale(letterScale);
   rectMode(CENTER);
+
+  let cardW = width > 600 ? 380 : width * 0.9;
+  textFont('Georgia');
+  textSize(width > 600 ? 18 : 16);
+  
+  // Calculate height based on message length
+  let wrapWidth = cardW - 50;
+  let cardH = width > 600 ? 280 : 320; 
+
+  // Shadow
+  fill(0, 20);
+  rect(5, 5, cardW, cardH, 15);
+
+  // Card
   fill(255, 253, 245);
   stroke(200, 180, 150);
   strokeWeight(3);
-  let cardW = width > 600 ? 350 : width * 0.85;
-  let cardH = width > 600 ? 250 : 220; // Slightly taller for the new text
   rect(0, 0, cardW, cardH, 15);
+  
+  // Text
   fill(50, 40, 20);
   noStroke();
   textAlign(CENTER, CENTER);
-  textFont('Georgia');
-  textSize(width > 600 ? 18 : 15);
-  text(myLetter, 0, 0, cardW - 40, cardH - 40);
+  text(myLetter, 0, 0, wrapWidth, cardH - 40);
   pop();
 }
