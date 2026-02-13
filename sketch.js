@@ -4,12 +4,6 @@ function setup() {
   angleMode(DEGREES);
   initGarden();
 }
-function setup() {
-  createCanvas(windowWidth, windowHeight);
-  pixelDensity(1); // THIS IS THE KEY: it stops high-res screens from changing the scale
-  angleMode(DEGREES);
-  initGarden();
-}
 // --- Variables ---
 let stemHeight = 0;
 let maxStemHeight;
@@ -20,12 +14,13 @@ let maxSeeds = 250;
 let clouds = [];
 let raindrops = [];
 let splashes = []; // For rain impact
-let pollen = [];   // For the bee
+let pollen = [];   // For the bee trail
 let beePos;
 let lastTapTime = 0;
 
 // --- Letter & Heart Variables ---
-let myLetter = "To someone special,\n\nJust like this sunflower,\nyou make the world a little brighter.\n\nKeep blooming!";
+// Updated with your personal message for Shashan
+let myLetter = "To Shashan,\n\nI really like you and that is why I want to know you more. I want you to know that I am always here when you need someone.\n\nJust like this sunflower, you make the world a little brighter. Keep blooming!";
 let letterScale = 0;
 let showLetter = false;
 
@@ -61,6 +56,7 @@ function windowResized() {
 
 function mousePressed() {
   let currentTime = millis();
+  // Double tap to reset the animation
   if (currentTime - lastTapTime < 300) {
     initGarden();
   }
@@ -68,7 +64,7 @@ function mousePressed() {
 }
 
 function draw() {
-  drawDynamicSky(); // Updated: Gradient Sky
+  drawDynamicSky(); 
   
   // 1. Rain & Splash Logic
   strokeWeight(2);
@@ -78,7 +74,6 @@ function draw() {
     line(r.x, r.y, r.x, r.y + 10);
     r.y += r.speed;
     
-    // Splash when hitting ground
     if (r.y > height - 60) {
       splashes.push({ x: r.x, y: height - 60, r: 1, a: 255 });
       raindrops.splice(i, 1);
@@ -140,7 +135,7 @@ function draw() {
     pop();
 
     updateRealisticBee(fx, fy);
-    drawPollen(); // Updated: Bee leaves a trail
+    drawPollen(); 
   }
 
   // 5. Letter & Heart
@@ -151,10 +146,9 @@ function draw() {
 }
 
 function drawDynamicSky() {
-  // Changes sky based on sun (mouse) position
   let inter = map(mouseX, 0, width, 0, 1);
-  let c1 = color(110, 155, 195); // Rain Blue
-  let c2 = color(255, 150, 100); // Sunset Orange
+  let c1 = color(110, 155, 195); 
+  let c2 = color(255, 150, 100); 
   let bg = lerpColor(c1, c2, inter);
   background(bg);
 }
@@ -219,17 +213,13 @@ function drawPetals(scaleVal) {
 
 function drawSeeds(scaleVal) {
   let sSize = width > 600 ? 90 : 60;
-  
-  // Suggestion 1: Glow effect
   for (let i = 8; i > 0; i--) {
     fill(255, 255, 100, 12 - i);
     ellipse(0, 0, (sSize * scaleVal) + (i * 8));
   }
-
   fill(60, 40, 20); 
   noStroke();
   ellipse(0, 0, sSize * scaleVal, sSize * scaleVal);
-  
   if (numSeeds < maxSeeds) numSeeds += 2;
   let angleStep = 137.5; 
   let scalar = (sSize / 30) * scaleVal;
@@ -245,12 +235,9 @@ function updateRealisticBee(tx, ty) {
   let target = createVector(tx + 40, ty + 20);
   beePos.x = lerp(beePos.x, target.x, 0.05);
   beePos.y = lerp(beePos.y, target.y, 0.05);
-  
-  // Suggestion 2: Pollen particles
   if (frameCount % 10 === 0) {
     pollen.push({ x: beePos.x, y: beePos.y, vx: random(-1, 1), vy: random(0, 2), a: 200 });
   }
-
   push();
   translate(beePos.x, beePos.y);
   fill(255, 255, 255, 160);
@@ -269,7 +256,6 @@ function updateRealisticBee(tx, ty) {
 
 function drawPollen() {
   noStroke();
-  fill(255, 255, 0);
   for (let i = pollen.length - 1; i >= 0; i--) {
     let p = pollen[i];
     fill(255, 255, 0, p.a);
@@ -307,13 +293,13 @@ function drawSideLetter() {
   stroke(200, 180, 150);
   strokeWeight(3);
   let cardW = width > 600 ? 350 : width * 0.85;
-  let cardH = width > 600 ? 220 : 180;
+  let cardH = width > 600 ? 250 : 220; // Slightly taller for the new text
   rect(0, 0, cardW, cardH, 15);
   fill(50, 40, 20);
   noStroke();
   textAlign(CENTER, CENTER);
   textFont('Georgia');
-  textSize(width > 600 ? 18 : 14);
+  textSize(width > 600 ? 18 : 15);
   text(myLetter, 0, 0, cardW - 40, cardH - 40);
   pop();
 }
